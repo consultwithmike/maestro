@@ -182,9 +182,13 @@ Outcome of arbitration:
 
 ## Invoking a subagent
 
-Build the Agent call so the subagent returns **structured JSON you can parse**. Template:
+Build the Agent call so the subagent returns **structured JSON you can parse**. A subagent
+inherits the session's working directory but has no memory of it — so **always state the repo /
+working directory explicitly** in the prompt (an absolute path), especially for the implementer
+and any verifier that runs tests. Template:
 
 > You are acting as the **<role>** on task **<task_id>**.
+> Working directory (operate only here): <absolute repo path>.
 >
 > ## Requirement (verbatim, immutable)
 > <requirement>
