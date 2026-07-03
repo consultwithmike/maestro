@@ -1,0 +1,25 @@
+{
+  "task_id": "TASK-001",
+  "requirement": "<verbatim task, story, or idea as the human stated it>",
+  "stage": "INTAKE",
+  "refs": {
+    "requirement_ref": null,
+    "architecture_ref": null,
+    "current_diff_ref": null
+  },
+  "active_rework_reasons": [],
+  "context_requirements": {
+    "principal-engineer": ["requirement_ref"],
+    "staff-engineer-implementer": ["requirement_ref", "architecture_ref", "active_rework_reasons"],
+    "code-reviewer": ["requirement_ref", "architecture_ref", "current_diff_ref", "active_rework_reasons"],
+    "security-engineer": ["requirement_ref", "current_diff_ref"],
+    "qa-engineer": ["requirement_ref", "current_diff_ref"],
+    "ux-engineer": ["requirement_ref", "current_diff_ref"]
+  },
+  "verifier_votes": {},
+  "retry": {
+    "count": 0,
+    "max": 3
+  },
+  "history": []
+}

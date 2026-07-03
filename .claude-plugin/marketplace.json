@@ -1,0 +1,16 @@
+{
+  "name": "maestro-marketplace",
+  "displayName": "Maestro",
+  "description": "Multi-agent software development pipeline for Claude Code.",
+  "owner": {
+    "name": "Michael Perrenoud"
+  },
+  "plugins": [
+    {
+      "name": "maestro",
+      "source": "./",
+      "description": "Conductor-led team of specialist subagents that take a task from intent to verified change.",
+      "version": "0.1.0"
+    }
+  ]
+}

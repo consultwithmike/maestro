@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maestro.dev/schemas/backlog.schema.json",
+  "title": "Maestro Backlog",
+  "description": "A running queue of valid findings the orchestrator chose NOT to fix in the originating work stream. Backlog items never re-enter an active task automatically — each becomes a standalone future task the human may launch on demand.",
+  "type": "object",
+  "required": ["backlog"],
+  "additionalProperties": false,
+  "properties": {
+    "backlog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "task_origin", "raised_by", "finding", "severity", "decided_by", "rationale", "status", "date"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^BL-[0-9]+$", "description": "Stable backlog id. Reusable as a task_id when the human launches a run against it." },
+          "task_origin": { "type": "string", "description": "task_id that surfaced this finding." },
+          "raised_by": { "type": "string", "description": "Verifier that raised it." },
+          "finding": { "type": "string", "description": "The full normalized finding text — enough that a future run can re-scope it without the original context." },
+          "location": { "type": "string" },
+          "acceptance": { "type": "string", "description": "What resolution looks like, carried forward so the future task has a clear target." },
+          "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+          "decided_by": { "type": "string", "description": "Usually orchestrator; records who chose to backlog rather than block." },
+          "rationale": { "type": "string", "description": "Why this was backlogged instead of blocked — the audit answer to 'why didn't we fix this now?'" },
+          "status": { "type": "string", "enum": ["open", "in-progress", "resolved", "wont-fix"] },
+          "date": { "type": "string", "description": "ISO-8601 date the item was backlogged." }
+        }
+      }
+    }
+  }
+}

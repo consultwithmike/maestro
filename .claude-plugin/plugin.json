@@ -1,0 +1,21 @@
+{
+  "name": "maestro",
+  "displayName": "Maestro",
+  "version": "0.1.0",
+  "description": "A conductor-led team of specialist subagents (strategist, architect, implementer, and four independent verifiers) that take a story, task, or idea from intent to verified, shippable change — with routing, tie-breaking, curated context, backlog, and retry limits.",
+  "author": {
+    "name": "Michael Perrenoud"
+  },
+  "license": "MIT",
+  "keywords": [
+    "orchestration",
+    "multi-agent",
+    "pipeline",
+    "code-review",
+    "subagents"
+  ],
+  "agents": "./agents/",
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "hooks": "./hooks/hooks.json"
+}

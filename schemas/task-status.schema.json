@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maestro.dev/schemas/task-status.schema.json",
+  "title": "Maestro Task Status",
+  "description": "Single source of truth for one task moving through the Maestro pipeline. The orchestrator is the ONLY writer. All subagents may read it (via the paths in `refs`); none write it directly — they return structured verdicts that the orchestrator persists here.",
+  "type": "object",
+  "required": ["task_id", "requirement", "stage", "refs", "context_requirements", "retry", "history"],
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "Stable, human-readable id, e.g. AUTH-142 or the backlog id (BL-0007) if this run originates from the backlog.",
+      "pattern": "^[A-Z0-9]+-[0-9]+$"
+    },
+    "requirement": {
+      "type": "string",
+      "description": "The raw, verbatim task/story/idea as the human stated it. Never overwritten — the immutable north star for every agent."
+    },
+    "stage": {
+      "type": "string",
+      "description": "Where the task currently sits. Drives routing.",
+      "enum": [
+        "INTAKE",
+        "STRATEGY",
+        "ARCHITECTURE",
+        "IMPLEMENTATION",
+        "VERIFICATION",
+        "ARBITRATION",
+        "REWORK",
+        "DONE",
+        "ESCALATED_TO_HUMAN",
+        "ABANDONED"
+      ]
+    },
+    "refs": {
+      "type": "object",
+      "description": "Pointers (relative file paths under the task folder) to the durable artifacts each stage produces. Context lineage lives here, not inline, so the status file stays small and the orchestrator can hand an agent exactly the artifacts it needs.",
+      "additionalProperties": false,
+      "properties": {
+        "requirement_ref": {
+          "type": ["string", "null"],
+          "description": "Strategist's normalized requirement + acceptance criteria doc."
+        },
+        "architecture_ref": {
+          "type": ["string", "null"],
+          "description": "Principal engineer's architecture/approach doc."
+        },
+        "current_diff_ref": {
+          "type": ["string", "null"],
+          "description": "Implementer's latest change summary + list of touched files for the current pass."
+        }
+      }
+    },
+    "active_rework_reasons": {
+      "type": "array",
+      "description": "Open, blocking findings the implementer must resolve on the next pass. Each carries a `targets` list so the orchestrator knows which OTHER agents must also see it on re-verification (e.g. the code-reviewer must re-check a UX-raised fix). Removed once the originating verifier confirms resolution, then moved to history.",
+      "items": { "$ref": "#/definitions/finding" }
+    },
+    "context_requirements": {
+      "type": "object",
+      "description": "Per-agent whitelist of which `refs` fields (plus the literal token `active_rework_reasons`) the orchestrator is allowed to assemble into that agent's prompt. The mechanism that keeps each agent fed but not flooded.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["requirement_ref", "architecture_ref", "current_diff_ref", "active_rework_reasons"]
+        }
+      }
+    },
+    "verifier_votes": {
+      "type": "object",
+      "description": "Most recent verdict from each verifier for the current diff. Reset (or superseded) on each new implementation pass.",
+      "additionalProperties": false,
+      "properties": {
+        "code-reviewer": { "$ref": "#/definitions/vote" },
+        "security-engineer": { "$ref": "#/definitions/vote" },
+        "qa-engineer": { "$ref": "#/definitions/vote" },
+        "ux-engineer": { "$ref": "#/definitions/vote" }
+      }
+    },
+    "retry": {
+      "type": "object",
+      "required": ["count", "max"],
+      "additionalProperties": false,
+      "properties": {
+        "count": { "type": "integer", "minimum": 0, "description": "Implementation rework loops taken so far." },
+        "max": { "type": "integer", "minimum": 1, "description": "Ceiling; at this count the orchestrator stops and escalates to the human instead of looping." }
+      }
+    },
+    "history": {
+      "type": "array",
+      "description": "Append-only audit trail. Every routing decision, verdict, arbitration, disposition, and normalization the orchestrator makes is logged here — including BOTH the raw agent output reference and the normalized record — so a human can reconstruct exactly what each agent saw and why.",
+      "items": {
+        "type": "object",
+        "required": ["seq", "actor", "action"],
+        "additionalProperties": true,
+        "properties": {
+          "seq": { "type": "integer", "description": "Monotonic step counter." },
+          "timestamp": { "type": "string", "description": "ISO-8601. Supplied by the orchestrator from a shell `date` call, since agents cannot read the clock." },
+          "actor": { "type": "string", "description": "orchestrator | strategist | principal-engineer | ... " },
+          "action": { "type": "string", "description": "e.g. ROUTE, VERDICT, ARBITRATE, BLOCK, BACKLOG, DISMISS, NORMALIZE, ESCALATE, SHIP." },
+          "detail": { "type": "string" },
+          "raw_ref": { "type": ["string", "null"], "description": "Path to the raw agent output captured for this step, when applicable." }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "vote": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "type": "string", "enum": ["APPROVED", "REJECTED"] },
+        "findings": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/finding" }
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "description": "A normalized finding. Normalization strips agent-specific voice and dedupes, but PRESERVES every fact a downstream agent needs to act on and verify the fix. It is a structured record, not a one-line summary.",
+      "required": ["id", "from", "finding", "severity", "targets"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "description": "Stable finding id, e.g. F-003, so it can be tracked across passes and moved to history on resolution." },
+        "from": { "type": "string", "description": "Originating verifier." },
+        "finding": { "type": "string", "description": "What is wrong, in one clear declarative sentence." },
+        "location": { "type": "string", "description": "File / component / flow step the finding points at." },
+        "expected": { "type": "string", "description": "The correct behavior or state." },
+        "actual": { "type": "string", "description": "The observed behavior or state." },
+        "acceptance": { "type": "string", "description": "The concrete condition that means this finding is resolved. This is what the re-verification checks against — the field that must NEVER be distilled away." },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "disposition": { "type": "string", "enum": ["BLOCK", "BACKLOG", "DISMISS"], "description": "Set by the orchestrator, not the verifier." },
+        "targets": {
+          "type": "array",
+          "description": "Agents (besides the implementer) who must see this finding on the next pass to verify the fix.",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

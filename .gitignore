@@ -1,0 +1,2 @@
+# Maestro runtime state — created per project at run time, not shipped with the plugin.
+.maestro/

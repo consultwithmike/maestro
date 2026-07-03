@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "strategist|principal-engineer|staff-engineer-implementer|code-reviewer|security-engineer|qa-engineer|ux-engineer",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/audit.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
