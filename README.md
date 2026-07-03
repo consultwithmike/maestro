@@ -46,6 +46,20 @@ The authoritative audit is the orchestrator's own `history` log.
 
 ---
 
+## Proof it works
+
+Don't take the description on faith — read an actual end-to-end run. The
+[**dry runs**](docs/dry-runs/) folder holds full execution transcripts: the task, every stage,
+each verifier's verdict, findings and how they were disposed, rework loops, and independently
+re-run test output.
+
+- [Run 001 — email validator](docs/dry-runs/001-email-validator.md): clean happy path. Notably,
+  the security verifier *empirically load-tested the regex for ReDoS* and QA *re-ran the test
+  suite itself* — the gates do real, independent work, not rubber-stamping.
+- [Run 002 — path-traversal rework](docs/dry-runs/002-path-traversal-rework.md): a verifier
+  **rejects**, the orchestrator routes the finding back, and re-verification confirms the
+  specific fix — the loop-back and finding-disposition machinery in action.
+
 ## Install
 
 ```bash
