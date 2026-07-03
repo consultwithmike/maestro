@@ -63,6 +63,10 @@ re-run test output.
   security and UX demand *mutually exclusive* things and the requirement never settled it, so the
   orchestrator **escalates to the human** with a structured decision instead of arbitrating a
   product call it has no business making — and wastes zero rework loops doing it.
+- [Run 004 — the retry ceiling](docs/dry-runs/004-retry-ceiling.md): an unbounded requirement where
+  every rework fixes its case and the verifier finds one more. The **retry ceiling** stops the loop
+  after N passes and escalates the *cause* (undefined scope) rather than looping forever — the
+  safety bound that lets you run this semi-autonomously.
 
 ## Install
 
