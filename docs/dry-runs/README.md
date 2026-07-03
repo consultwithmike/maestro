@@ -36,6 +36,7 @@ demos; they're execution logs.
 | [002](002-path-traversal-rework.md) | Add `read_note(name)` file reader | Verifier **rejection** → rework loop → re-verification of the specific fix; block vs backlog disposition | DONE after 1 rework; 1 item backlogged |
 | [003](003-escalation-requirement-conflict.md) | Add `mask_email(email)` for a confirmation screen | Security vs UX demand **mutually exclusive** things → orchestrator **escalates** instead of arbitrating; no wasted rework | ESCALATED_TO_HUMAN |
 | [004](004-retry-ceiling.md) | Add `slugify(text)` for arbitrary text | Each rework fixes its case but the requirement is **unbounded**; the **retry ceiling** stops the loop and escalates the cause | ESCALATED_TO_HUMAN (ceiling) |
+| [005](005-calculator-app.md) | Build a Windows-style **calculator app** | Real deliverable from a 1-line ask: **multi-turn strategist↔principal** scope negotiation, testable engine/UI split, visual-fidelity review, 1 rework | DONE — [working app](artifacts/005-calculator.html) |
 
 ## Reproducing
 

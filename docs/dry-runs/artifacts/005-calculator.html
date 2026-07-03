@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator</title>
+<style>
+  :root {
+    --bg: #f3f3f3;
+    --panel: #ffffff;
+    --display-bg: #ffffff;
+    --text: #1a1a1a;
+    --text-dim: #6b6b6b;
+    --btn-digit: #fdfdfd;
+    --btn-digit-hover: #f0f0f0;
+    --btn-fn: #e4e4e4;
+    --btn-fn-hover: #d6d6d6;
+    --btn-mem: transparent;
+    --btn-mem-text: #444;
+    --accent: #0067c0;
+    --accent-hover: #0078d4;
+    --accent-text: #ffffff;
+    --border: #e2e2e2;
+    --flash: rgba(0,103,192,0.28);
+    --shadow: 0 8px 30px rgba(0,0,0,0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1f1f1f;
+      --panel: #202020;
+      --display-bg: #202020;
+      --text: #ffffff;
+      --text-dim: #a0a0a0;
+      --btn-digit: #3b3b3b;
+      --btn-digit-hover: #474747;
+      --btn-fn: #323232;
+      --btn-fn-hover: #3d3d3d;
+      --btn-mem: transparent;
+      --btn-mem-text: #cfcfcf;
+      --accent: #4cc2ff;
+      --accent-hover: #62c9ff;
+      --accent-text: #000000;
+      --border: #3a3a3a;
+      --flash: rgba(76,194,255,0.35);
+      --shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+  }
+  /* explicit theme override (viewer toggle wins) */
+  :root[data-theme="light"] {
+    --bg: #f3f3f3; --panel: #ffffff; --display-bg: #ffffff; --text: #1a1a1a;
+    --text-dim: #6b6b6b; --btn-digit: #fdfdfd; --btn-digit-hover: #f0f0f0;
+    --btn-fn: #e4e4e4; --btn-fn-hover: #d6d6d6; --btn-mem-text: #444;
+    --accent: #0067c0; --accent-hover: #0078d4; --accent-text: #ffffff;
+    --border: #e2e2e2; --flash: rgba(0,103,192,0.28); --shadow: 0 8px 30px rgba(0,0,0,0.12);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1f1f1f; --panel: #202020; --display-bg: #202020; --text: #ffffff;
+    --text-dim: #a0a0a0; --btn-digit: #3b3b3b; --btn-digit-hover: #474747;
+    --btn-fn: #323232; --btn-fn-hover: #3d3d3d; --btn-mem-text: #cfcfcf;
+    --accent: #4cc2ff; --accent-hover: #62c9ff; --accent-text: #000000;
+    --border: #3a3a3a; --flash: rgba(76,194,255,0.35); --shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+  body { display: flex; align-items: center; justify-content: center; padding: 16px; }
+
+  .calc {
+    width: 100%; max-width: 360px;
+    background: var(--panel);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 10px 10px 14px;
+  }
+
+  .title { font-size: 14px; font-weight: 600; padding: 6px 8px 10px; }
+
+  .display {
+    background: var(--display-bg);
+    padding: 6px 10px 12px;
+    text-align: right;
+    overflow: hidden;
+  }
+  .expression {
+    min-height: 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .expression::-webkit-scrollbar { display: none; }
+  .result {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .result::-webkit-scrollbar { display: none; }
+  .result.error { font-size: 26px; font-weight: 600; }
+
+  .memstrip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    margin: 4px 0 8px;
+  }
+  .memstrip button {
+    background: var(--btn-mem);
+    color: var(--btn-mem-text);
+    border: none;
+    border-radius: 6px;
+    padding: 6px 0;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .memstrip button:hover:not(:disabled) { background: var(--btn-fn-hover); }
+  .memstrip button:disabled { opacity: 0.4; cursor: default; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .grid button {
+    border: none;
+    border-radius: 8px;
+    padding: 16px 0;
+    font-size: 19px;
+    color: var(--text);
+    background: var(--btn-fn);
+    cursor: pointer;
+    transition: background 0.05s ease;
+    -webkit-user-select: none; user-select: none;
+  }
+  .grid button.digit { background: var(--btn-digit); font-weight: 600; }
+  .grid button.digit:hover { background: var(--btn-digit-hover); }
+  .grid button.fn:hover { background: var(--btn-fn-hover); }
+  .grid button.equals {
+    background: var(--accent);
+    color: var(--accent-text);
+    font-weight: 700;
+  }
+  .grid button.equals:hover { background: var(--accent-hover); }
+
+  button.flash { background: var(--flash) !important; }
+  .grid button.equals.flash { filter: brightness(1.15); }
+
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+</style>
+</head>
+<body>
+  <main class="calc" role="application" aria-label="Calculator">
+    <div class="title">Standard</div>
+    <div class="display">
+      <div class="expression" id="expression" aria-hidden="true"></div>
+      <div class="result" id="result" aria-live="polite">0</div>
+    </div>
+
+    <div class="memstrip" id="memstrip">
+      <button data-token="MC" aria-label="Memory clear">MC</button>
+      <button data-token="MR" aria-label="Memory recall">MR</button>
+      <button data-token="M+" aria-label="Memory add">M+</button>
+      <button data-token="M-" aria-label="Memory subtract">M&minus;</button>
+      <button data-token="MS" aria-label="Memory store">MS</button>
+    </div>
+
+    <div class="grid" id="grid">
+      <button class="fn" data-token="%" aria-label="Percent">%</button>
+      <button class="fn" data-token="CE" aria-label="Clear entry">CE</button>
+      <button class="fn" data-token="C" aria-label="Clear">C</button>
+      <button class="fn" data-token="back" aria-label="Backspace">&#9003;</button>
+
+      <button class="fn" data-token="recip" aria-label="Reciprocal">1/x</button>
+      <button class="fn" data-token="sqr" aria-label="Square">x&sup2;</button>
+      <button class="fn" data-token="sqrt" aria-label="Square root">&radic;x</button>
+      <button class="fn" data-token="÷" aria-label="Divide">&divide;</button>
+
+      <button class="digit" data-token="7" aria-label="Seven">7</button>
+      <button class="digit" data-token="8" aria-label="Eight">8</button>
+      <button class="digit" data-token="9" aria-label="Nine">9</button>
+      <button class="fn" data-token="×" aria-label="Multiply">&times;</button>
+
+      <button class="digit" data-token="4" aria-label="Four">4</button>
+      <button class="digit" data-token="5" aria-label="Five">5</button>
+      <button class="digit" data-token="6" aria-label="Six">6</button>
+      <button class="fn" data-token="-" aria-label="Subtract">&minus;</button>
+
+      <button class="digit" data-token="1" aria-label="One">1</button>
+      <button class="digit" data-token="2" aria-label="Two">2</button>
+      <button class="digit" data-token="3" aria-label="Three">3</button>
+      <button class="fn" data-token="+" aria-label="Add">+</button>
+
+      <button class="fn" data-token="neg" aria-label="Negate">&plusmn;</button>
+      <button class="digit" data-token="0" aria-label="Zero">0</button>
+      <button class="digit" data-token="." aria-label="Decimal point">.</button>
+      <button class="equals" data-token="=" aria-label="Equals">=</button>
+    </div>
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- Engine: inlined VERBATIM from src/calculator.engine.js            -->
+  <!-- (single source of truth — do not edit here, edit the source file) -->
+  <!-- ================================================================= -->
+  <script>
+/*
+ * CalculatorEngine — DOM-free immediate-execution calculator state machine.
+ * Windows 11 Standard calculator semantics (NO operator precedence).
+ *
+ * Public API:
+ *   input(token) -> { display, expression, memoryActive, error }
+ *   getView()    -> same view-model without mutating state
+ *   reset()      -> full reset (clears memory too); returns view-model
+ *
+ * Single source of truth: this file is inlined verbatim into calculator.html.
+ */
+(function (global) {
+  'use strict';
+
+  // ---- numeric projection ------------------------------------------------
+  // Round-half-away, <=16 significant digits, strip trailing zeros / dot.
+  // Exponential notation when the decimal exponent > 15 or < -4.
+  function project(v) {
+    if (v === 0 || Object.is(v, -0)) return '0';
+    if (!isFinite(v)) return v > 0 ? 'Overflow' : '-Overflow';
+
+    var neg = v < 0;
+    var a = Math.abs(v);
+
+    // decimal exponent, corrected for floating point log10 error
+    var exp = Math.floor(Math.log10(a));
+    if (a < Math.pow(10, exp)) exp--;
+    if (a >= Math.pow(10, exp + 1)) exp++;
+
+    if (exp > 15 || exp < -4) {
+      // exponential notation, 16 significant digits
+      var mant = a / Math.pow(10, exp);
+      var mdp = 15;
+      var mr = Math.floor(mant * Math.pow(10, mdp) + 0.5) / Math.pow(10, mdp);
+      if (mr >= 10) { mr = mr / 10; exp++; }
+      var ms = mr.toFixed(mdp).replace(/0+$/, '').replace(/\.$/, '');
+      return (neg ? '-' : '') + ms + 'e' + (exp >= 0 ? '+' : '-') + Math.abs(exp);
+    }
+
+    // fixed notation: round to 16 significant digits. Rounding on the decimal
+    // representation (toPrecision) avoids the float error that a raw
+    // multiply-by-10^dp introduces at the 16th digit (e.g. 0.1 + 0.2).
+    var rounded = Number(a.toPrecision(16));
+    var s = rounded.toString(); // plain decimal within this exponent range
+    return (neg ? '-' : '') + s;
+  }
+
+  // significant-digit count of an entry string (for the 16-digit cap)
+  function sigCount(s) {
+    var t = s.replace('-', '').replace('.', '').replace(/^0+/, '');
+    return t.length;
+  }
+
+  var OPS = { '+': 1, '-': 1, '×': 1, '÷': 1 };
+
+  function CalculatorEngine() {
+    this.reset();
+  }
+
+  CalculatorEngine.project = project; // exposed for tests/UI
+
+  CalculatorEngine.prototype.reset = function () {
+    this.accumulator = 0;
+    this.pendingOp = null;
+    this.entryBuffer = '';
+    this.entryActive = false;
+    this._entryValue = 0;
+    this.lastOp = null;
+    this.lastOperand = null;
+    this.memory = null;
+    this.error = null;
+    this.justEvaluated = false;
+
+    // expression rendering state
+    this.committed = [];        // locked tokens, e.g. ['2','+','3','×']
+    this._operandExpr = null;   // repr of current operand (unary/percent aware)
+    this._exprTail = null;      // trailing segment shown before an op (unary)
+    this._exprOverride = null;  // full expression string ('' == blank) for '='
+
+    return this.view();
+  };
+
+  CalculatorEngine.prototype.currentValue = function () {
+    if (this.entryActive) return this._entryValue;
+    return this.accumulator;
+  };
+
+  CalculatorEngine.prototype._expression = function () {
+    if (this._exprOverride !== null) return this._exprOverride;
+    var parts = this.committed.slice();
+    if (this._exprTail !== null) parts.push(this._exprTail);
+    return parts.join(' ');
+  };
+
+  CalculatorEngine.prototype.view = function () {
+    var display;
+    if (this.error) display = this.error;
+    else if (this.entryActive) display = this.entryBuffer;
+    else display = project(this.accumulator);
+    return {
+      display: display,
+      expression: this._expression(),
+      memoryActive: this.memory !== null,
+      error: this.error
+    };
+  };
+
+  CalculatorEngine.prototype.getView = function () {
+    return this.view();
+  };
+
+  // apply a binary operator; sets this.error on divide-by-zero
+  CalculatorEngine.prototype.apply = function (op, a, b) {
+    switch (op) {
+      case '+': return a + b;
+      case '-': return a - b;
+      case '×': return a * b;
+      case '÷':
+        if (b === 0) {
+          this.error = (a === 0) ? 'Result is undefined' : 'Cannot divide by zero';
+          return a;
+        }
+        return a / b;
+    }
+    return a;
+  };
+
+  CalculatorEngine.prototype.input = function (token) {
+    // error latch: only CE and C respond while an error is showing
+    if (this.error && token !== 'CE' && token !== 'C') return this.view();
+
+    if (/^[0-9]$/.test(token) || token === '.') return this._digit(token);
+
+    switch (token) {
+      case '+':
+      case '-':
+      case '×':
+      case '÷':
+        return this._op(token);
+      case '=': return this._equals();
+      case '%': return this._percent();
+      case 'neg': return this._neg();
+      case 'sqrt': return this._unary('sqrt');
+      case 'sqr': return this._unary('sqr');
+      case 'recip': return this._unary('recip');
+      case 'back': return this._back();
+      case 'CE': return this._ce();
+      case 'C': return this._c();
+      case 'MS': return this._ms();
+      case 'MR': return this._mr();
+      case 'MC': return this._mc();
+      case 'M+': return this._madd(1);
+      case 'M-': return this._madd(-1);
+    }
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._digit = function (tok) {
+    if (!this.entryActive) {
+      if (this.justEvaluated) { this.committed = []; }
+      this._exprOverride = null;
+      this._exprTail = null;
+      this.entryActive = true;
+      this.justEvaluated = false;
+      this.entryBuffer = (tok === '.') ? '0.' : tok;
+    } else {
+      if (tok === '.') {
+        if (this.entryBuffer.indexOf('.') >= 0) return this.view();
+        this.entryBuffer += '.';
+      } else {
+        if (sigCount(this.entryBuffer) >= 16) return this.view();
+        if (this.entryBuffer === '0') this.entryBuffer = tok;
+        else this.entryBuffer += tok;
+      }
+    }
+    this._operandExpr = this.entryBuffer;
+    this._entryValue = parseFloat(this.entryBuffer) || 0;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._op = function (sym) {
+    var val, repr;
+
+    if (this.entryActive) {
+      val = this.currentValue();
+      repr = (this._operandExpr !== null) ? this._operandExpr : project(val);
+    } else if (this.justEvaluated) {
+      // continue from a result: start a fresh expression
+      this.committed = [];
+      this._exprOverride = null;
+      this.justEvaluated = false;
+      this.pendingOp = null;
+      val = this.accumulator;
+      repr = project(val);
+    } else {
+      // operator pressed again without a new operand: just swap the operator
+      this.pendingOp = sym;
+      if (this.committed.length) this.committed[this.committed.length - 1] = sym;
+      this._exprTail = null;
+      this._exprOverride = null;
+      return this.view();
+    }
+
+    if (this.pendingOp === null) {
+      this.accumulator = val;
+    } else {
+      this.accumulator = this.apply(this.pendingOp, this.accumulator, val);
+    }
+
+    this.committed.push(repr);
+    this.committed.push(sym);
+    this.pendingOp = sym;
+    this.entryActive = false;
+    this._operandExpr = null;
+    this._exprTail = null;
+    this._exprOverride = null;
+    this.justEvaluated = false;
+
+    if (this.error) this._exprOverride = this.committed.join(' ');
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._equals = function () {
+    if (this.pendingOp !== null) {
+      var operand = this.currentValue();
+      var repr = (this._operandExpr !== null) ? this._operandExpr : project(operand);
+      var parts = this.committed.slice();
+      parts.push(repr, '=');
+      this._exprOverride = parts.join(' ');
+
+      var r = this.apply(this.pendingOp, this.accumulator, operand);
+      this.lastOp = this.pendingOp;
+      this.lastOperand = operand;
+      if (this.error === null) this.accumulator = r;
+
+      this.pendingOp = null;
+      this.committed = [];
+      this.entryActive = false;
+      this._operandExpr = null;
+      this._exprTail = null;
+      this.justEvaluated = true;
+    } else if (this.lastOp !== null) {
+      // repeated '=' : reuse lastOp/lastOperand and BLANK the expression
+      var r2 = this.apply(this.lastOp, this.accumulator, this.lastOperand);
+      if (this.error === null) this.accumulator = r2;
+      this._exprOverride = '';
+      this.entryActive = false;
+      this._operandExpr = null;
+      this._exprTail = null;
+      this.justEvaluated = true;
+    } else {
+      // '=' with nothing pending: show "<value> ="
+      var v = this.currentValue();
+      var vr = (this._operandExpr !== null) ? this._operandExpr : project(v);
+      this.accumulator = v;
+      this._exprOverride = vr + ' =';
+      this.entryActive = false;
+      this._operandExpr = null;
+      this._exprTail = null;
+      this.justEvaluated = true;
+    }
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._percent = function () {
+    var e = this.currentValue();
+    var acc = this.accumulator;
+    var p;
+    if (this.pendingOp === '+' || this.pendingOp === '-') {
+      p = acc * e / 100;
+    } else {
+      // ×, ÷, or standalone
+      p = e / 100;
+    }
+    this._entryValue = p;
+    this.entryBuffer = project(p);
+    this.entryActive = true;
+    this._operandExpr = project(p);
+    this._exprTail = null;
+    this._exprOverride = null;
+    this.justEvaluated = false;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._neg = function () {
+    if (this.entryActive) {
+      if (this.entryBuffer.charAt(0) === '-') {
+        this.entryBuffer = this.entryBuffer.slice(1);
+      } else if (this.entryBuffer !== '0' && this.entryBuffer !== '') {
+        this.entryBuffer = '-' + this.entryBuffer;
+      }
+      this._entryValue = parseFloat(this.entryBuffer) || 0;
+      this._operandExpr = this.entryBuffer;
+    } else {
+      this.accumulator = -this.accumulator;
+      this._entryValue = this.accumulator;
+      this.entryBuffer = project(this.accumulator);
+      this.entryActive = true;
+      this._operandExpr = this.entryBuffer;
+    }
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._unary = function (kind) {
+    var v = this.currentValue();
+    var base = (this._operandExpr !== null) ? this._operandExpr : project(v);
+    var wrap, result;
+
+    if (kind === 'sqrt') {
+      wrap = '√(' + base + ')';
+      if (v < 0) { this._exprTail = wrap; this._operandExpr = wrap; this.error = 'Invalid input'; return this.view(); }
+      result = Math.sqrt(v);
+    } else if (kind === 'sqr') {
+      wrap = 'sqr(' + base + ')';
+      result = v * v;
+    } else { // recip
+      wrap = '1/(' + base + ')';
+      if (v === 0) { this._exprTail = wrap; this._operandExpr = wrap; this.error = 'Cannot divide by zero'; return this.view(); }
+      result = 1 / v;
+    }
+
+    this._entryValue = result;
+    this.entryBuffer = project(result);
+    this.entryActive = true;
+    this._operandExpr = wrap;
+    this._exprTail = wrap;
+    this._exprOverride = null;
+    this.justEvaluated = false;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._back = function () {
+    if (!this.entryActive) return this.view();
+    var s = this.entryBuffer.slice(0, -1);
+    if (s === '' || s === '-') s = '0';
+    this.entryBuffer = s;
+    this._entryValue = parseFloat(s) || 0;
+    this._operandExpr = s;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._ce = function () {
+    this.error = null;
+    this.entryActive = true;
+    this.entryBuffer = '0';
+    this._entryValue = 0;
+    this._operandExpr = null;
+    this._exprTail = null;
+    this._exprOverride = null;
+    this.justEvaluated = false;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._c = function () {
+    var mem = this.memory;
+    this.reset();
+    this.memory = mem;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._ms = function () {
+    var v = this.currentValue();
+    this.memory = v;
+    this.accumulator = v;
+    this.entryActive = false;
+    this._operandExpr = null;
+    this._exprTail = null;
+    this.justEvaluated = true;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._mr = function () {
+    if (this.memory === null) return this.view();
+    this._entryValue = this.memory;
+    this.entryBuffer = project(this.memory);
+    this.entryActive = true;
+    this._operandExpr = project(this.memory);
+    this._exprTail = null;
+    this.justEvaluated = false;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._mc = function () {
+    this.memory = null;
+    return this.view();
+  };
+
+  CalculatorEngine.prototype._madd = function (sign) {
+    var v = this.currentValue();
+    var base = (this.memory === null) ? 0 : this.memory;
+    this.memory = base + sign * v;
+    this.accumulator = v;
+    this.entryActive = false;
+    this._operandExpr = null;
+    this._exprTail = null;
+    this.justEvaluated = true;
+    return this.view();
+  };
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = CalculatorEngine;
+  } else {
+    global.CalculatorEngine = CalculatorEngine;
+  }
+})(typeof self !== 'undefined' ? self : this);
+  </script>
+
+  <!-- ================================================================= -->
+  <!-- Thin UI layer: maps clicks + keyboard to tokens, renders the view -->
+  <!-- ================================================================= -->
+  <script>
+  (function () {
+    'use strict';
+    var engine = new CalculatorEngine();
+    var resultEl = document.getElementById('result');
+    var exprEl = document.getElementById('expression');
+    var grid = document.getElementById('grid');
+    var memstrip = document.getElementById('memstrip');
+
+    // token -> the button element (for click + keyboard flashing)
+    var buttons = {};
+    Array.prototype.forEach.call(document.querySelectorAll('[data-token]'), function (btn) {
+      var tok = btn.getAttribute('data-token');
+      if (!buttons[tok]) buttons[tok] = btn; // first match wins
+    });
+
+    function updateMemButtons(view) {
+      // Windows keeps MS/M+/M- always enabled; only MR/MC gray out when
+      // memory is empty.
+      ['MR', 'MC'].forEach(function (t) {
+        var b = buttons[t];
+        if (b) b.disabled = !view.memoryActive;
+      });
+    }
+
+    function send(token) {
+      var view = engine.input(token);
+      resultEl.textContent = view.display;
+      exprEl.textContent = view.expression;
+      resultEl.classList.toggle('error', !!view.error);
+      updateMemButtons(view);
+    }
+
+    function flash(btn) {
+      if (!btn) return;
+      btn.classList.add('flash');
+      setTimeout(function () { btn.classList.remove('flash'); }, 110);
+    }
+
+    // ---- click handling ----
+    document.querySelectorAll('[data-token]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tok = btn.getAttribute('data-token');
+        flash(btn);
+        send(tok);
+      });
+    });
+
+    // ---- keyboard handling ----
+    var KEYMAP = {
+      '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+      '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
+      '.': '.', '+': '+', '-': '-',
+      '*': '×', '/': '÷',
+      '=': '=', 'Enter': '=',
+      '%': '%',
+      'Backspace': 'back',
+      'Escape': 'C',
+      'Delete': 'CE'
+    };
+
+    window.addEventListener('keydown', function (e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      var key = e.key;
+      var tok = KEYMAP[key];
+      if (tok === undefined) return;
+      // prevent '/' quick-find, Backspace navigation, etc.
+      e.preventDefault();
+      flash(buttons[tok]);
+      send(tok);
+    });
+
+    // initial paint
+    var v0 = engine.getView();
+    resultEl.textContent = v0.display;
+    exprEl.textContent = v0.expression;
+    updateMemButtons(v0);
+  })();
+  </script>
+</body>
+</html>

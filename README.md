@@ -67,6 +67,11 @@ re-run test output.
   every rework fixes its case and the verifier finds one more. The **retry ceiling** stops the loop
   after N passes and escalates the *cause* (undefined scope) rather than looping forever — the
   safety bound that lets you run this semi-autonomously.
+- [Run 005 — a real calculator app](docs/dry-runs/005-calculator-app.md): "build a visual calculator
+  like the Windows one" taken from a 9-word ask to a shipped, self-contained
+  [working app](docs/dry-runs/artifacts/005-calculator.html) — via a **multi-turn strategist↔principal
+  scope negotiation**, a testable engine/UI architecture (28/28 headless golden-vector tests, a
+  20k-sequence fuzz), a dedicated **visual-fidelity** review, and one rework loop.
 
 ## Install
 
