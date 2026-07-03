@@ -73,6 +73,13 @@ re-run test output.
   scope negotiation**, a testable engine/UI architecture (28/28 headless golden-vector tests, a
   20k-sequence fuzz), a dedicated **visual-fidelity** review, and one rework loop.
 
+  <p align="center">
+    <img src="docs/dry-runs/artifacts/005-calculator-dark.png" alt="Maestro-built calculator, dark theme" width="300">
+    &nbsp;&nbsp;
+    <img src="docs/dry-runs/artifacts/005-calculator-expression.png" alt="Calculator showing 157 + 10 = 167" width="300">
+  </p>
+  <p align="center"><em>Delivered by the pipeline from the one-line request above — Windows 11 Standard fidelity, light/dark, mouse + keyboard.</em></p>
+
 ## Install
 
 ```bash

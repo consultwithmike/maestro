@@ -10,6 +10,13 @@ memory keys, light/dark theming, **28/28 golden-vector tests green**, verified b
 Delivered after a **2-turn strategist↔principal collaboration** and **one UX rework loop**. Three
 genuinely-deferred items were backlogged, not blocked.
 
+<p align="center">
+  <img src="artifacts/005-calculator-dark.png" alt="Maestro-built calculator, dark theme" width="300">
+  &nbsp;&nbsp;
+  <img src="artifacts/005-calculator-expression.png" alt="Calculator showing 157 + 10 = 167" width="300">
+</p>
+<p align="center"><em>The actual delivered app (dark theme). Left: cleared. Right: mid-calculation with the running-expression line above the result.</em></p>
+
 **The delivered app is in this repo:** [`artifacts/005-calculator.html`](artifacts/005-calculator.html)
 — a single self-contained file; open it in any browser to use it. (Source engine:
 [`artifacts/005-calculator.engine.js`](artifacts/005-calculator.engine.js); tests:
