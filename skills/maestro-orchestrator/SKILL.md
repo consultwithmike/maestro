@@ -164,10 +164,16 @@ security  >  correctness  >  KISS/maintainability  >  UX polish
 Write your **reasoning** to `history`, not just the verdict.
 
 **Escalate to the human (stop and ask) when:**
-- a security finding is `high` severity,
-- `retry.count` would exceed `retry.max`,
-- verifiers disagree on what the requirement *means* (a strategist/requirement problem, not
-  yours to resolve).
+- `retry.count` would exceed `retry.max` (the loop guard — stop thrashing, hand off).
+- A **high-severity security finding cannot be safely remediated** — it recurs after a rework
+  pass, or the fix is contentious/uncertain. (A high-severity security finding that is clearly
+  remediable is BLOCKed and reworked, then surfaced in the end-of-run summary — not escalated on
+  sight. Escalate only when auto-remediation is failing or risky.)
+- Verifiers disagree on what the requirement *means* — e.g. two verifiers reject from opposite
+  directions on the same axis (security wants less disclosure, UX wants more recognizability) and
+  the requirement never defined the tradeoff. This is a strategist/product decision, **not yours
+  to arbitrate on severity**; forwarding it back to the implementer would just make one verifier
+  re-reject. Stop and put the decision to the human.
 
 **Loop guard:** never let two agents bounce the same finding more than once without your
 explicit arbitration recorded in `history`.

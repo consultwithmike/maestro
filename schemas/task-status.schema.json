@@ -67,6 +67,44 @@
         }
       }
     },
+    "resolved_findings": {
+      "type": "array",
+      "description": "Findings that were BLOCKed, reworked, and then confirmed fixed by re-verification. Moved here out of active_rework_reasons so they stop being injected into future passes, while preserving the audit trail of what was caught and who confirmed the fix.",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "resolved_by": { "type": "string", "description": "The diff/pass that fixed it, e.g. diff-v02." },
+          "confirmed_by": { "type": "array", "items": { "type": "string" }, "description": "Verifiers that confirmed the fix satisfied the finding's acceptance condition." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "escalation": {
+      "type": ["object", "null"],
+      "description": "Set only when stage is ESCALATED_TO_HUMAN. Records the decision the orchestrator will NOT make itself — because it is a requirement/product call, a high-severity unremediable security issue, or a retry-ceiling breach — plus the conflicting inputs the human needs to decide.",
+      "additionalProperties": false,
+      "properties": {
+        "trigger": { "type": "string", "enum": ["REQUIREMENT_INTERPRETATION_CONFLICT", "SECURITY_UNREMEDIABLE", "RETRY_CEILING_EXCEEDED"] },
+        "decision_needed": { "type": "string", "description": "The specific question put to the human, in one sentence." },
+        "positions": {
+          "type": "array",
+          "description": "The conflicting agent positions, so the human sees both sides verbatim rather than a lossy paraphrase.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "agent": { "type": "string" },
+              "wants": { "type": "string" },
+              "acceptance": { "type": "string" }
+            }
+          }
+        },
+        "options": { "type": "array", "items": { "type": "string" }, "description": "Concrete resolutions the human can choose from." }
+      }
+    },
     "verifier_votes": {
       "type": "object",
       "description": "Most recent verdict from each verifier for the current diff. Reset (or superseded) on each new implementation pass.",

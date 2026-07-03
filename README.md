@@ -59,6 +59,10 @@ re-run test output.
 - [Run 002 — path-traversal rework](docs/dry-runs/002-path-traversal-rework.md): a verifier
   **rejects**, the orchestrator routes the finding back, and re-verification confirms the
   specific fix — the loop-back and finding-disposition machinery in action.
+- [Run 003 — escalation on a requirement conflict](docs/dry-runs/003-escalation-requirement-conflict.md):
+  security and UX demand *mutually exclusive* things and the requirement never settled it, so the
+  orchestrator **escalates to the human** with a structured decision instead of arbitrating a
+  product call it has no business making — and wastes zero rework loops doing it.
 
 ## Install
 
