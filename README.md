@@ -91,6 +91,13 @@ re-run test output.
   who raised findings re-check them (a third to two-thirds the cost of a full review); security and
   QA aren't re-run because nothing in their domain changed. Closes the whole lifecycle: backlog →
   re-scope → build → verify → rework → re-verify → ship → `resolved`.
+- [Run 008 — a feasibility command that answers "no"](docs/dry-runs/008-what-if-feasibility.md):
+  builds **`/what-if`** — runs the strategist and architect, then **stops before any code** and
+  returns an honest `FEASIBLE` / `FEASIBLE_WITH_CAVEATS` / `INFEASIBLE` verdict with cited evidence.
+  Exercised on its own example mid-run (`/what-if "can token usage split input/output tokens?"`), it
+  returned a well-evidenced **INFEASIBLE** — Maestro's only source is one aggregate `subagent_tokens`
+  scalar. Promotion (`/maestro run WHATIF-<id>`) re-runs the **full** pipeline; `INFEASIBLE` is
+  refused. Assess-before-you-build, with a real "no".
 
 ## Install
 

@@ -42,6 +42,7 @@ demos; they're execution logs.
 | [005](005-calculator-app.md) | Build a Windows-style **calculator app** | Real deliverable from a 1-line ask: **multi-turn strategist↔principal** scope negotiation, testable engine/UI split, visual-fidelity review, 1 rework | DONE — [working app](artifacts/005-calculator.html) |
 | [006](006-token-accounting.md) | Add **token usage statistics** | A best-effort **token ledger** written once per turn (in the same write as `history`): per-turn records + `total`/`by_agent`/`by_stage` rollups; graceful null on missing usage; additive schema; observability-only (no gate reads it) | DONE — dogfooded live |
 | [007](007-rework-dogfood.md) | `run BL-0001` (backlog cleanup) | A **rework loop on the installed plugin**: a 4/4-passing change still gets a tight polish loop for two low nits, cleared by **curated re-verification** (only the two finding-owners re-run — a third to two-thirds the cost of a full review); full backlog lifecycle closed | DONE after 1 rework; BL-0001 resolved |
+| [008](008-what-if-feasibility.md) | Build a **`/what-if` feasibility command** | A mode that runs strategist+principal then **stops before code**, emitting an honest `FEASIBLE`/`CAVEATS`/`INFEASIBLE` verdict with cited evidence; **promotion re-runs the full pipeline** (seed-not-skip). Exercised live mid-run: `/what-if "split token usage into in/out?"` → **INFEASIBLE**, correctly | DONE — honest-negative proven live |
 
 ## Reproducing
 
