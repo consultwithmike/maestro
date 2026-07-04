@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maestro.dev/schemas/whatif.schema.json",
+  "title": "Maestro What-If (Feasibility Study)",
+  "description": "Single source of truth for one /what-if feasibility study. A what-if drives ONLY the front half of the pipeline (strategist + principal engineer) then STOPS — it never enters implementation or verification, writes no source, produces no diff. It terminates in the what-if-specific terminal state WHATIF_DONE carrying a feasibility verdict, or bounces to NEEDS_HUMAN (a requirement bounce, NOT a verdict). Persisted under `.maestro/whatifs/<id>/`, deliberately separate from `.maestro/tasks/` so a study is never mistaken for a built/verified task. The orchestrator is the ONLY writer. Self-contained: history and token_usage shapes are copied from task-status (not $ref'd across files).",
+  "type": "object",
+  "required": ["whatif_id", "question", "stage", "refs", "history"],
+  "additionalProperties": false,
+  "properties": {
+    "whatif_id": {
+      "type": "string",
+      "description": "Stable what-if id, e.g. WHATIF-001. The WHATIF- prefix is one of three redundant signals that this is a study, not a built task.",
+      "pattern": "^WHATIF-[0-9]+$"
+    },
+    "question": {
+      "type": "string",
+      "description": "The raw, verbatim free-text question the human asked. Never overwritten — the immutable north star for the strategist and principal engineer."
+    },
+    "stage": {
+      "type": "string",
+      "description": "Where the study currently sits. Drives routing. Deliberately EXCLUDES IMPLEMENTATION/VERIFICATION/etc — a what-if can never reach them. WHATIF_DONE is the success terminal (carries a verdict); NEEDS_HUMAN is a strategist bounce (no verdict).",
+      "enum": [
+        "INTAKE",
+        "STRATEGY",
+        "ARCHITECTURE",
+        "WHATIF_DONE",
+        "NEEDS_HUMAN"
+      ]
+    },
+    "refs": {
+      "type": "object",
+      "description": "Pointers (relative file paths under the what-if folder) to the durable artifacts each stage produces.",
+      "additionalProperties": false,
+      "properties": {
+        "requirement_ref": {
+          "type": ["string", "null"],
+          "description": "Strategist's feasibility-framed requirement + acceptance criteria doc."
+        },
+        "architecture_ref": {
+          "type": ["string", "null"],
+          "description": "Principal engineer's feasibility study / approach-if-buildable doc."
+        },
+        "verdict_ref": {
+          "type": ["string", "null"],
+          "description": "The synthesized feasibility-verdict artifact (verdict.json)."
+        }
+      }
+    },
+    "context_requirements": {
+      "type": "object",
+      "description": "Per-agent whitelist of which `refs` fields the orchestrator may assemble into that agent's prompt. Only strategist and principal-engineer ever participate in a what-if.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["requirement_ref", "architecture_ref", "verdict_ref"]
+        }
+      }
+    },
+    "feasibility_verdict": {
+      "description": "The synthesized verdict, mirrored here from verdict.json once ARCHITECTURE completes. Null until WHATIF_DONE. Same shape as the standalone verdict.json root.",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/verdict" }
+      ]
+    },
+    "history": {
+      "type": "array",
+      "description": "Append-only audit trail. Every routing decision, verdict, and normalization the orchestrator makes is logged here — including BOTH the raw agent output reference and the normalized record — so a human can reconstruct exactly what each agent saw and why.",
+      "items": {
+        "type": "object",
+        "required": ["seq", "actor", "action"],
+        "additionalProperties": true,
+        "properties": {
+          "seq": { "type": "integer", "description": "Monotonic step counter." },
+          "timestamp": { "type": "string", "description": "ISO-8601. Supplied by the orchestrator from a shell `date` call, since agents cannot read the clock." },
+          "actor": { "type": "string", "description": "orchestrator | strategist | principal-engineer" },
+          "action": { "type": "string", "description": "e.g. ROUTE, VERDICT, NORMALIZE, TERMINATE." },
+          "detail": { "type": "string" },
+          "raw_ref": { "type": ["string", "null"], "description": "Path to the raw agent output captured for this step, when applicable." }
+        }
+      }
+    },
+    "token_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Best-effort token accounting; sole source is the <usage>subagent_tokens: N</usage> scalar the orchestrator sees per Agent return. Observability only — NEVER read by routing or verdict synthesis. Missing/malformed usage is a null-token turn, never an error.",
+      "properties": {
+        "turns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["seq", "actor", "stage", "subagent_tokens"],
+            "additionalProperties": false,
+            "properties": {
+              "seq": { "type": "integer" },
+              "actor": { "type": "string" },
+              "stage": { "type": "string", "enum": ["STRATEGY", "ARCHITECTURE"] },
+              "subagent_tokens": { "type": ["integer", "null"], "minimum": 0 }
+            }
+          }
+        },
+        "total": { "type": "integer", "minimum": 0 },
+        "by_agent": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "by_stage": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } }
+      }
+    }
+  },
+  "definitions": {
+    "verdict": {
+      "type": "object",
+      "description": "A synthesized feasibility verdict. Also the root shape of the standalone verdict.json artifact. Honest by construction: an accurate INFEASIBLE is a valid, valuable outcome; token_usage never influences it.",
+      "required": ["verdict", "reasoning", "evidence_refs", "promotable"],
+      "additionalProperties": false,
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": ["FEASIBLE", "FEASIBLE_WITH_CAVEATS", "INFEASIBLE"]
+        },
+        "reasoning": {
+          "type": "string",
+          "description": "Why this verdict — grounded in the strategist's scope and the principal engineer's plan/risks."
+        },
+        "evidence_refs": {
+          "type": "array",
+          "description": "Concrete file/artifact citations supporting the verdict. At least one is always required.",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "blocking_constraint": {
+          "type": ["string", "null"],
+          "description": "The specific constraint that conditions (CAVEATS) or prevents (INFEASIBLE) the build. FEASIBLE may leave this null; CAVEATS and INFEASIBLE must name it (non-empty string)."
+        },
+        "promotable": {
+          "type": "boolean",
+          "description": "True iff verdict != INFEASIBLE. FEASIBLE and FEASIBLE_WITH_CAVEATS are promotable via `/maestro run <whatif_id>`; INFEASIBLE is refused."
+        }
+      },
+      "if": {
+        "properties": { "verdict": { "const": "FEASIBLE" } }
+      },
+      "then": {
+        "properties": {
+          "blocking_constraint": { "type": ["string", "null"] }
+        }
+      },
+      "else": {
+        "properties": {
+          "blocking_constraint": { "type": "string", "minLength": 1 }
+        },
+        "required": ["blocking_constraint"]
+      }
+    }
+  }
+}

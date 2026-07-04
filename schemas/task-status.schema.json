@@ -12,6 +12,10 @@
       "description": "Stable, human-readable id, e.g. AUTH-142 or the backlog id (BL-0007) if this run originates from the backlog.",
       "pattern": "^[A-Z0-9]+-[0-9]+$"
     },
+    "task_origin": {
+      "type": "string",
+      "description": "Optional provenance of this task: the backlog id (BL-<id>) or what-if id (WHATIF-<id>) it was promoted from. Absent for tasks created directly. Recorded for audit only — never drives routing."
+    },
     "requirement": {
       "type": "string",
       "description": "The raw, verbatim task/story/idea as the human stated it. Never overwritten — the immutable north star for every agent."

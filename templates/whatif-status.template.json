@@ -1,0 +1,16 @@
+{
+  "whatif_id": "WHATIF-001",
+  "question": "<verbatim free-text question as the human asked it>",
+  "stage": "INTAKE",
+  "refs": {
+    "requirement_ref": null,
+    "architecture_ref": null,
+    "verdict_ref": null
+  },
+  "context_requirements": {
+    "principal-engineer": ["requirement_ref"]
+  },
+  "feasibility_verdict": null,
+  "history": [],
+  "token_usage": { "turns": [], "total": 0, "by_agent": {}, "by_stage": {} }
+}

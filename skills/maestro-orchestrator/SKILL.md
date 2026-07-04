@@ -41,11 +41,17 @@ All state lives under `.maestro/` at the repo root.
 ```
 .maestro/
 ├── backlog.json                 # cross-task running backlog
-└── tasks/<task_id>/
-    ├── status.json              # single source of truth for this task
+├── tasks/<task_id>/
+│   ├── status.json              # single source of truth for this task
+│   ├── requirement.md           # strategist artifact  (requirement_ref)
+│   ├── architecture.md          # principal artifact    (architecture_ref)
+│   ├── diff-vNN.md              # implementer artifact per pass (current_diff_ref)
+│   └── raw/<seq>-<agent>.md      # captured raw agent outputs (for audit)
+└── whatifs/<whatif_id>/          # /what-if feasibility studies (NOT built tasks)
+    ├── status.json              # conforms to schemas/whatif.schema.json
     ├── requirement.md           # strategist artifact  (requirement_ref)
-    ├── architecture.md          # principal artifact    (architecture_ref)
-    ├── diff-vNN.md              # implementer artifact per pass (current_diff_ref)
+    ├── architecture.md          # principal feasibility study (architecture_ref)
+    ├── verdict.json             # synthesized feasibility verdict (verdict_ref)
     └── raw/<seq>-<agent>.md      # captured raw agent outputs (for audit)
 ```
 
@@ -92,6 +98,77 @@ REWORK        → IMPLEMENTATION      (retry.count++)
 - **VERIFICATION** — invoke all four verifiers. Run them **in parallel** (multiple Agent
   calls in one message) — they are independent and read-only. Collect four votes.
 - **ARBITRATION** — you decide. See below.
+
+---
+
+## Feasibility mode (/what-if)
+
+Triggered by the `/what-if` command. A what-if answers **"is this even possible?"** — it runs
+the **front half** of the pipeline and then STOPS. It produces a feasibility verdict, never a
+build. It writes only under `.maestro/whatifs/<whatif_id>/` (never `tasks/`, never source), and
+its state conforms to `schemas/whatif.schema.json`.
+
+**Setup.** Mint a `WHATIF-<id>` id. Create `.maestro/whatifs/<id>/status.json` from
+`templates/whatif-status.template.json`, putting the human's question **verbatim** into
+`question`. Log an `INTAKE` entry.
+
+**Truncated state machine** — only the strategist and principal engineer are ever invoked:
+
+```
+INTAKE       → STRATEGY
+STRATEGY     → ARCHITECTURE       (strategist scoped)  |  NEEDS_HUMAN (bounce)  |  WHATIF_DONE (early INFEASIBLE)
+ARCHITECTURE → WHATIF_DONE        (synthesize verdict)
+```
+
+It can **never** reach IMPLEMENTATION or VERIFICATION. Do not invoke the implementer or any
+verifier. Do not touch source. Do not produce a diff.
+
+- **STRATEGY** — invoke `strategist`, framing the request as a **feasibility problem**. Persist
+  its `requirement_doc` to `requirement.md`, set `refs.requirement_ref`. The strategist may
+  bounce to **NEEDS_HUMAN** if the question is genuinely ambiguous/incoherent — that is a
+  requirement bounce with **no verdict**, strictly distinct from an `INFEASIBLE` verdict. It may
+  also **early-terminate** straight to `WHATIF_DONE` with an `INFEASIBLE` verdict if grounding
+  in the codebase shows the thing is impossible as asked (skip ARCHITECTURE in that case).
+- **ARCHITECTURE** — invoke `principal-engineer` with a prompt that says this is a **feasibility
+  study — give the approach if buildable, else name the blocking constraint; write no code**. Its
+  `risks[]` become the caveats. Persist `architecture_doc` to `architecture.md`, set
+  `refs.architecture_ref`.
+
+**Verdict synthesis rubric** (copied verbatim from the architecture):
+
+> FEASIBLE = buildable in patterns / no blocker; CAVEATS = buildable but named constraint
+> conditions it; INFEASIBLE = depends on data/capability codebase can't currently provide;
+> always reasoning + ≥1 evidence_refs.
+
+Then: write `verdict.json` (conforms to `#/definitions/verdict` in `whatif.schema.json`), set
+`refs.verdict_ref`, mirror the same object into `status.feasibility_verdict`, set
+`promotable = (verdict != INFEASIBLE)`, and set `stage = WHATIF_DONE`. `blocking_constraint`
+must be a non-empty string for CAVEATS and INFEASIBLE (may be null only for FEASIBLE).
+
+**Honest-negative rule** (copied verbatim from the architecture):
+
+> Be honest — an accurate INFEASIBLE is the point; never inflate the verdict; token_usage never
+> influences the verdict.
+
+`token_usage` here is **observability-only**, exactly as in a full run: record the strategist
+and principal turns (per-turn, null-graceful) but **never** let it affect the verdict or any
+outcome.
+
+**End summary** for a what-if: state the verdict, its reasoning, and the evidence refs. If
+`promotable`, tell the human how to promote it: `/maestro run <whatif_id>`.
+
+### Promoting a what-if
+
+Triggered by `/maestro run WHATIF-<id>`. Read `.maestro/whatifs/<id>/status.json` first:
+
+- If its verdict is **INFEASIBLE**, **refuse** — surface the recorded `blocking_constraint` and
+  start no build.
+- Otherwise, mint a **NEW, non-WHATIF** `task_id` (the what-if id is used **only** as
+  `task_origin`, so there is no id collision with the study). Seed the strategist and principal
+  engineer with the saved `requirement.md` and `architecture.md` as **prior art — not
+  substitutes**, then run the **full pipeline**: all four gates, re-validating against the
+  current code. **No stage or gate is skipped**, and nothing from the study is trusted without
+  re-verification.
 
 ---
 

@@ -1,0 +1,7 @@
+{
+  "verdict": "FEASIBLE_WITH_CAVEATS",
+  "reasoning": "<why this verdict — grounded in the strategist's scope and the principal engineer's plan/risks>",
+  "evidence_refs": ["<file or artifact citation supporting the verdict; at least one required>"],
+  "blocking_constraint": "<the specific constraint that conditions (CAVEATS) or prevents (INFEASIBLE) the build; null only when verdict is FEASIBLE>",
+  "promotable": true
+}
