@@ -84,7 +84,7 @@ re-run test output.
 
 ```bash
 # add this repo as a marketplace, then install the plugin
-claude plugin marketplace add <your-org>/maestro
+claude plugin marketplace add consultwithmike/maestro
 claude plugin install maestro
 ```
 
