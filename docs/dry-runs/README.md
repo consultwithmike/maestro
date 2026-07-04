@@ -37,6 +37,7 @@ demos; they're execution logs.
 | [003](003-escalation-requirement-conflict.md) | Add `mask_email(email)` for a confirmation screen | Security vs UX demand **mutually exclusive** things → orchestrator **escalates** instead of arbitrating; no wasted rework | ESCALATED_TO_HUMAN |
 | [004](004-retry-ceiling.md) | Add `slugify(text)` for arbitrary text | Each rework fixes its case but the requirement is **unbounded**; the **retry ceiling** stops the loop and escalates the cause | ESCALATED_TO_HUMAN (ceiling) |
 | [005](005-calculator-app.md) | Build a Windows-style **calculator app** | Real deliverable from a 1-line ask: **multi-turn strategist↔principal** scope negotiation, testable engine/UI split, visual-fidelity review, 1 rework | DONE — [working app](artifacts/005-calculator.html) |
+| [006](006-token-accounting.md) | Add **token usage statistics** | A best-effort **token ledger** written once per turn (in the same write as `history`): per-turn records + `total`/`by_agent`/`by_stage` rollups; graceful null on missing usage; additive schema; observability-only (no gate reads it) | DONE — dogfooded live |
 
 ## Reproducing
 

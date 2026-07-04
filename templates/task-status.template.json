@@ -21,5 +21,6 @@
     "count": 0,
     "max": 3
   },
-  "history": []
+  "history": [],
+  "token_usage": { "turns": [], "total": 0, "by_agent": {}, "by_stage": {} }
 }

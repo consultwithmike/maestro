@@ -80,6 +80,12 @@ re-run test output.
   </p>
   <p align="center"><em>Delivered by the pipeline from the one-line request above — Windows 11 Standard fidelity, light/dark, mouse + keyboard.</em></p>
 
+- [Run 006 — token accounting](docs/dry-runs/006-token-accounting.md): a best-effort **token
+  ledger** the orchestrator writes once per turn — per-turn `subagent_tokens` plus `total`,
+  `by_agent`, and `by_stage` rollups, visible after every turn via `/maestro-status`. Missing
+  usage degrades gracefully to a `null` turn; the schema is purely additive; and no decision path
+  ever reads it — **observability only**, dogfooded on its own build run.
+
 ## Install
 
 ```bash

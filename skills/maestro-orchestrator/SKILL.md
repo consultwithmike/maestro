@@ -218,7 +218,37 @@ and any verifier that runs tests. Template:
 
 After each return: capture the raw output to `.maestro/tasks/<task_id>/raw/<seq>-<agent>.md`,
 persist artifacts (`requirement.md`, `architecture.md`, `diff-vNN.md`) and update `refs`,
-write votes/findings into `status.json`, append to `history`, then advance `stage`.
+write votes/findings into `status.json`, append to `history`, record the turn's token usage
+(see **Token accounting**), then advance `stage`.
+
+---
+
+## Token accounting
+
+Every subagent return ends with a trailing `<usage>subagent_tokens: N</usage>` scalar — the
+**only** token signal you get, and the sole source for this ledger. It is **observability
+only**: write it down, never let it steer anything.
+
+For each subagent invocation, in the **same per-step write** as the `history` append:
+
+1. Parse the trailing `<usage>subagent_tokens: N</usage>` from the return.
+2. Push one record to `token_usage.turns`:
+   `{ "seq": <this step's seq>, "actor": <role>, "stage": <current stage>, "subagent_tokens": N }`.
+3. Roll it up: add `N` to `token_usage.total`, to `token_usage.by_agent[<actor>]`, and to
+   `token_usage.by_stage[<stage>]` (initialize any missing key to `0` first).
+
+**One turn = one invocation.** Four verifiers in a VERIFICATION pass produce **four** records
+with four distinct `seq`s. A rework pass adds **new** turns; it never rewrites old ones. The
+ledger is append-only, exactly like `history`.
+
+**Graceful null.** If the `<usage>` marker is missing or malformed, treat it as a null-token
+turn: record `{ ..., "subagent_tokens": null }`, add **nothing** to the rollups, and continue.
+Never retry, never error, never stall on missing usage — same exit-0 ethos as the audit hook.
+A null turn is normal, not a failure.
+
+**Never affects outcomes.** `token_usage` is write-only from the pipeline's perspective. No
+decision path — routing, context assembly, normalization, arbitration, retry, or gates — may
+read it. It exists purely so a human can see, per turn and in aggregate, where the tokens went.
 
 ---
 

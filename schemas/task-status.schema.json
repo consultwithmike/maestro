@@ -141,6 +141,30 @@
           "raw_ref": { "type": ["string", "null"], "description": "Path to the raw agent output captured for this step, when applicable." }
         }
       }
+    },
+    "token_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Best-effort token accounting; sole source is the <usage>subagent_tokens: N</usage> scalar the orchestrator sees per Agent return. Observability only — NEVER read by routing/arbitration/gates. Missing/malformed usage is a null-token turn, never an error.",
+      "properties": {
+        "turns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["seq", "actor", "stage", "subagent_tokens"],
+            "additionalProperties": false,
+            "properties": {
+              "seq": { "type": "integer" },
+              "actor": { "type": "string" },
+              "stage": { "type": "string", "enum": ["STRATEGY", "ARCHITECTURE", "IMPLEMENTATION", "VERIFICATION", "ARBITRATION", "REWORK"] },
+              "subagent_tokens": { "type": ["integer", "null"], "minimum": 0 }
+            }
+          }
+        },
+        "total": { "type": "integer", "minimum": 0 },
+        "by_agent": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "by_stage": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } }
+      }
     }
   },
   "definitions": {
