@@ -5,6 +5,8 @@
   "author": {
     "name": "Michael Perrenoud"
   },
+  "homepage": "https://github.com/consultwithmike/maestro",
+  "repository": "https://github.com/consultwithmike/maestro",
   "license": "MIT",
   "keywords": [
     "orchestration",
@@ -12,9 +14,5 @@
     "pipeline",
     "code-review",
     "subagents"
-  ],
-  "agents": "./agents/",
-  "skills": "./skills/",
-  "commands": "./commands/",
-  "hooks": "./hooks/hooks.json"
+  ]
 }
