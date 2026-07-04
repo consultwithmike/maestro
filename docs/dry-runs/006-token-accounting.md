@@ -118,20 +118,20 @@ Verifier votes: code-reviewer APPROVE · security-engineer APPROVE · qa-enginee
 Active rework reasons: none
 
 Token usage
-  Total: 208950
-  By stage: STRATEGY 29142 · ARCHITECTURE 25815 · IMPLEMENTATION 42488 · VERIFICATION 111505
-  By agent: strategist 29142 · principal-engineer 25815 · staff-engineer-implementer 42488
-            · security-engineer 28091 · code-reviewer 25743 · ux-engineer 24622 · qa-engineer 33049
+  Total: 208,950
+  By stage: STRATEGY 29,142 · ARCHITECTURE 25,815 · IMPLEMENTATION 42,488 · VERIFICATION 111,505
+  By agent: strategist 29,142 · principal-engineer 25,815 · staff-engineer-implementer 42,488
+            · security-engineer 28,091 · code-reviewer 25,743 · ux-engineer 24,622 · qa-engineer 33,049
 
   seq | stage          | agent                       | tokens
   ----+----------------+-----------------------------+-------
-    2 | STRATEGY       | strategist                  | 29142
-    4 | ARCHITECTURE   | principal-engineer          | 25815
-    6 | IMPLEMENTATION | staff-engineer-implementer  | 42488
-    8 | VERIFICATION   | security-engineer           | 28091
-    9 | VERIFICATION   | code-reviewer               | 25743
-   10 | VERIFICATION   | ux-engineer                 | 24622
-   11 | VERIFICATION   | qa-engineer                 | 33049
+    2 | STRATEGY       | strategist                  | 29,142
+    4 | ARCHITECTURE   | principal-engineer          | 25,815
+    6 | IMPLEMENTATION | staff-engineer-implementer  | 42,488
+    8 | VERIFICATION   | security-engineer           | 28,091
+    9 | VERIFICATION   | code-reviewer               | 25,743
+   10 | VERIFICATION   | ux-engineer                 | 24,622
+   11 | VERIFICATION   | qa-engineer                 | 33,049
 ```
 
 A `null`-usage turn (see above) would render its tokens cell as `—`.
@@ -139,10 +139,10 @@ A `null`-usage turn (see above) would render its tokens cell as `—`.
 **No-arg listing** — `/maestro-status` (tokens column = each task's `token_usage.total`):
 
 ```
-task_id     | stage   | tokens
-------------+---------+-------
+task_id     | stage   |  tokens
+------------+---------+--------
 NOTE-001    | DONE    | —        (pre-USAGE-001 state: no token_usage)
-USAGE-001   | DONE    | 208950
+USAGE-001   | DONE    | 208,950
 
 Backlog: 1 item.
 ```
@@ -150,9 +150,9 @@ Backlog: 1 item.
 A task written before this feature has no `token_usage`; the view shows `—` / `n/a` for it and
 **never errors**. This is what "additive" buys: old state stays valid and still renders.
 
-> **Known low-severity polish (BL-0001):** these totals render as bare digits (`208950`) rather than
-> grouped (`208,950`). UX flagged it; the orchestrator **backlogged** rather than block a 4/4-approved
-> change — thousands-separator formatting is a display tweak, not a correctness issue.
+> **Resolved (FMT-001):** rendered token counts now use thousands-separator grouping
+> (`208,950`, `29,142`); the render samples above reflect it. This was the low-severity UX
+> nit that shipped backlogged as **BL-0001** — a display tweak, not a correctness issue.
 
 ---
 
