@@ -11,6 +11,13 @@ when verifiers conflict, curates exactly the context each agent needs, decides w
 should **block**, **backlog**, or (rarely) be **dismissed**, enforces a retry ceiling, and hands
 the human a clear summary at the end.
 
+> [!TIP]
+> **Install [Caveman](https://github.com/juliusbrussee/caveman) alongside Maestro — it will save you millions of tokens.**
+> Maestro runs a whole team of agents on every task, so token cost is real (each dry run below reports its
+> own ledger). Caveman compresses agent and assistant output to a terse caveman shorthand — roughly **75%
+> fewer tokens** — with full technical accuracy preserved (code, commits, and security notes stay verbatim).
+> On a review-gated pipeline like this, that compounds across every run. Pair the two.
+
 ---
 
 ## The team
