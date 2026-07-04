@@ -85,6 +85,12 @@ re-run test output.
   `by_agent`, and `by_stage` rollups, visible after every turn via `/maestro-status`. Missing
   usage degrades gracefully to a `null` turn; the schema is purely additive; and no decision path
   ever reads it — **observability only**, dogfooded on its own build run.
+- [Run 007 — a rework loop, dogfooded](docs/dry-runs/007-rework-dogfood.md): launched from a
+  **backlog item** (BL-0001) the prior run deferred. A 4/4-passing change still earns a **tight
+  rework loop** for two low nits, cleared by **curated re-verification** — only the two verifiers
+  who raised findings re-check them (a third to two-thirds the cost of a full review); security and
+  QA aren't re-run because nothing in their domain changed. Closes the whole lifecycle: backlog →
+  re-scope → build → verify → rework → re-verify → ship → `resolved`.
 
 ## Install
 
